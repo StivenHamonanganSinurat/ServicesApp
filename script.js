@@ -51,32 +51,33 @@ async function askGemini() {
     const modelName = "gemini-3.1-flash-lite-preview"; 
     const URL_API = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
-   // Ganti bagian ini di dalam fungsi askGemini
-try {
-    const response = await fetch(URL_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ 
-                parts: [{ 
-                    text: `Berikan rekomendasi service untuk ${selectedText} kilometer ${km}.` 
-                }] 
-            }]
-        })
-    });
+    try {
+        const response = await fetch(URL_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ 
+                    parts: [{ 
+                        text: `Berikan rekomendasi service untuk ${selectedText} kilometer ${km}. Berikan poin-poin singkat dan estimasi biaya dalam Rupiah.` 
+                    }] 
+                }]
+            })
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    // Jika error "Busy" atau "503", kita beritahu user untuk tunggu 5 detik
-    if (result.error && (result.error.code === 503 || result.error.status === 'UNAVAILABLE')) {
-        resBox.innerText = "Server Google sedang sibuk. Tunggu 5 detik lalu klik lagi.";
-    } else if (result.error) {
-        resBox.innerText = "Error: " + result.error.message;
-    } else {
-        resBox.innerText = result.candidates[0].content.parts[0].text;
+        if (result.error) {
+            resBox.innerHTML = `<div style="color:red"><b>Error ${result.error.code}:</b> ${result.error.message}</div>`;
+            return;
+        }
+
+        if (result.candidates && result.candidates[0].content) {
+            resBox.innerText = result.candidates[0].content.parts[0].text;
+        } else {
+            resBox.innerText = "AI tidak memberikan respon.";
+        }
+
+    } catch (err) {
+        resBox.innerText = "Gagal koneksi.";
     }
-
-} catch (err) {
-    resBox.innerText = "Koneksi gagal. Silakan coba 5 detik lagi.";
-}
 }
