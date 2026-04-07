@@ -113,53 +113,39 @@ async function askGemini() {
     const km = document.getElementById('service-km').value;
     const resBox = document.getElementById('ai-response');
     
-    // Validasi input
-    if (!select.value || !km) {
-        alert("Silakan pilih kendaraan dan isi kilometer!");
-        return;
-    }
+    if (!select.value || !km) return alert("Pilih kendaraan dan isi KM!");
 
-    // Mengambil jenis kendaraan dari teks option yang dipilih
-    // Contoh: "B 1234 ABC (Mobil)" -> kita ambil "Mobil"
     const selectedText = select.options[select.selectedIndex].text;
-    const jenis = selectedText.includes("Mobil") ? "Mobil" : 
-                  selectedText.includes("Motor") ? "Motor" : 
-                  selectedText.includes("Truk") ? "Truk" : "Kendaraan";
-
-    resBox.innerHTML = "<i>AI sedang menganalisa data... Mohon tunggu sebentar.</i>";
-
-    // Format data untuk dikirim ke Google
-    const promptText = `Saya memiliki kendaraan jenis ${jenis} dengan kilometer saat ini ${km}. Berikan rekomendasi jadwal service rutin apa saja yang harus dilakukan dan perkiraan biayanya dalam mata uang Rupiah secara singkat.`;
+    resBox.innerHTML = "<i>Sedang menghubungi Google AI...</i>";
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
+                contents: [{ parts: [{ text: `Rekomendasi service ${selectedText} kilometer ${km}` }] }]
             })
         });
 
         const result = await response.json();
 
-        // Cek jika ada error dari Google API
+        // JIKA ERROR (Ini akan memberitahu kita alasan sebenarnya)
         if (result.error) {
-            console.error("Error dari Google:", result.error);
-            resBox.innerHTML = `<b style="color:red">Google API Error:</b> ${result.error.message}`;
+            resBox.innerHTML = `
+                <div style="color:red; background:#ffdada; padding:10px; border-radius:5px">
+                    <b>Google API Error:</b><br>
+                    Kode: ${result.error.code}<br>
+                    Status: ${result.error.status}<br>
+                    Pesan: ${result.error.message}
+                </div>`;
             return;
         }
 
-        // Tampilkan hasil jika sukses
-        if (result.candidates && result.candidates[0].content) {
-            const rawText = result.candidates[0].content.parts[0].text;
-            // Menampilkan teks dengan format yang rapi
-            resBox.innerText = rawText;
-        } else {
-            resBox.innerText = "Maaf, AI tidak memberikan respon. Coba ulangi.";
+        if (result.candidates) {
+            resBox.innerText = result.candidates[0].content.parts[0].text;
         }
 
     } catch (err) {
-        console.error("Gagal Fetch:", err);
-        resBox.innerText = "Terjadi gangguan koneksi ke server AI.";
+        resBox.innerHTML = `<b style="color:red">Gagal koneksi:</b> ${err.message}`;
     }
 }
