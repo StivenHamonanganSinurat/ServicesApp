@@ -1,7 +1,7 @@
 // CONFIGURATION
 const SUPABASE_URL = "https://tbfjzfernuvfnptbphuu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8W1g9Qw3wUHJdwIypWye9Q_WvFO_Eqh"; 
-const GEMINI_API_KEY = "AIzaSyBEmkmp3lno_A07WubEElypqtsZx-AyWYA";
+const GEMINI_API_KEY = "AIzaSyBErXSa25OohDhjl3OUz5n-eA0w21g_LjE";
 
 // Inisialisasi Client Supabase
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
