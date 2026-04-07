@@ -116,11 +116,12 @@ async function askGemini() {
     if (!select.value || !km) return alert("Pilih kendaraan dan isi KM!");
 
     const selectedText = select.options[select.selectedIndex].text;
-    resBox.innerHTML = "<i>Sedang menghubungi Google AI...</i>";
+    resBox.innerHTML = "<i>Sedang menganalisa dengan Google AI...</i>";
 
-    // KITA UBAH URL-NYA DI SINI:
-    // Dari v1beta menjadi v1
-    const URL_API = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // KITA GUNAKAN v1beta KEMBALI TAPI DENGAN NAMA MODEL YANG BERBEDA
+    // Beberapa akun membutuhkan nama model lengkap
+    const modelName = "gemini-1.5-flash"; 
+    const URL_API = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
     try {
         const response = await fetch(URL_API, {
@@ -129,7 +130,7 @@ async function askGemini() {
             body: JSON.stringify({
                 contents: [{ 
                     parts: [{ 
-                        text: `Berikan rekomendasi service rutin untuk kendaraan ${selectedText} yang sudah mencapai ${km} kilometer. Berikan poin-poin singkat dan estimasi biaya dalam Rupiah.` 
+                        text: `Berikan saran service rutin untuk kendaraan ${selectedText} yang sudah mencapai ${km} kilometer. Berikan poin-poin singkat dan estimasi biaya dalam Rupiah.` 
                     }] 
                 }]
             })
@@ -137,24 +138,47 @@ async function askGemini() {
 
         const result = await response.json();
 
+        // JIKA MASIH 404, KITA COBA MODEL CADANGAN (GEMINI-PRO)
+        if (result.error && result.error.code === 404) {
+            resBox.innerHTML = "<i>Model Flash tidak ditemukan, mencoba Model Pro...</i>";
+            return tryGeminiPro(selectedText, km);
+        }
+
         if (result.error) {
-            resBox.innerHTML = `
-                <div style="color:red; background:#ffdada; padding:10px; border-radius:5px">
-                    <b>Google API Error:</b><br>
-                    Kode: ${result.error.code}<br>
-                    Pesan: ${result.error.message}
-                </div>`;
+            resBox.innerHTML = `<div style="color:red; background:#ffdada; padding:10px; border-radius:5px">
+                <b>Google API Error:</b> ${result.error.message}</div>`;
             return;
         }
 
-        if (result.candidates && result.candidates[0].content) {
-            // Kita gunakan .innerText agar format bender (seperti bintang-bintang) dari AI tetap terbaca rapi
+        if (result.candidates) {
             resBox.innerText = result.candidates[0].content.parts[0].text;
-        } else {
-            resBox.innerText = "AI tidak memberikan respon. Coba ulangi.";
         }
 
     } catch (err) {
-        resBox.innerHTML = `<b style="color:red">Gagal koneksi:</b> ${err.message}`;
+        resBox.innerText = "Gagal koneksi ke server AI.";
+    }
+}
+
+// FUNGSI CADANGAN JIKA FLASH GAGAL
+async function tryGeminiPro(kendaraan, km) {
+    const resBox = document.getElementById('ai-response');
+    const URL_PRO = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+
+    try {
+        const response = await fetch(URL_PRO, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: `Service rutin ${kendaraan} km ${km}. Berikan poin biaya rupiah.` }] }]
+            })
+        });
+        const result = await response.json();
+        if (result.candidates) {
+            resBox.innerText = result.candidates[0].content.parts[0].text;
+        } else {
+            resBox.innerText = "Semua model AI sedang sibuk. Coba lagi nanti.";
+        }
+    } catch (e) {
+        resBox.innerText = "Gagal memanggil model cadangan.";
     }
 }
