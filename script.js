@@ -49,5 +49,5 @@ window.calcTotal = function() { /* ... kode anda ... */ };
 
 // Event Listener tetap bisa tanpa window.
 document.getElementById('form-kendaraan').addEventListener('submit', async (e) => {
-    // ... isi kode submit kendaraan ...
+    // ... isi kode submit kendaraan ........
 });
