@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServicesApp - Kendaraan & AI</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="app">
+        <header>
+            <h1 onclick="showPage('home-page')" style="cursor:pointer">ServicesApp 🚗</h1>
+        </header>
+
+        <!-- Halaman Home -->
+        <section id="home-page" class="page">
+            <div class="grid-container">
+                <button class="menu-btn" onclick="showPage('tambah-kendaraan-page')">➕ Tambah Kendaraan</button>
+                <button class="menu-btn" onclick="showPage('list-kendaraan-page'); loadListKendaraan()">📋 List Kendaraan</button>
+                <button class="menu-btn" onclick="showPage('bahan-bakar-page'); loadDropdownKendaraan('bbm-select')">⛽ Bahan Bakar</button>
+                <button class="menu-btn" onclick="showPage('service-page'); loadDropdownKendaraan('service-select')">🔧 Service Kendaraan</button>
+            </div>
+        </section>
+
+        <!-- Halaman Tambah Kendaraan -->
+        <section id="tambah-kendaraan-page" class="page hidden">
+            <div class="header-action">
+                <button onclick="showPage('home-page')" class="btn-back">⬅ Kembali</button>
+                <h2>Tambah Kendaraan</h2>
+            </div>
+            <form id="form-kendaraan">
+                <input type="text" id="plat" placeholder="Plat Nomor (Contoh: B 1234 ABC)" required>
+                <select id="jenis" required>
+                    <option value="">-- Pilih Jenis --</option>
+                    <option value="Mobil">Mobil</option>
+                    <option value="Motor">Motor</option>
+                    <option value="Truk">Truk</option>
+                    <option value="Bus">Bus</option>
+                </select>
+                <input type="number" id="tahun" min="1980" max="2026" placeholder="Tahun (1980-2026)" required>
+                <input type="text" id="warna" placeholder="Warna Kendaraan" required>
+                <button type="submit" class="btn-save">Simpan Kendaraan</button>
+            </form>
+        </section>
+
+        <!-- Halaman List Kendaraan -->
+        <section id="list-kendaraan-page" class="page hidden">
+            <div class="header-action">
+                <button onclick="showPage('home-page')" class="btn-back">⬅ Kembali</button>
+                <h2>Daftar Kendaraan</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plat</th>
+                            <th>Jenis</th>
+                            <th>Tahun</th>
+                            <th>Warna</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-kendaraan"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Halaman Bahan Bakar -->
+        <section id="bahan-bakar-page" class="page hidden">
+            <div class="header-action">
+                <button onclick="showPage('home-page')" class="btn-back">⬅ Kembali</button>
+                <h2>Input BBM</h2>
+            </div>
+            <form id="form-bbm">
+                <label>Pilih Kendaraan:</label>
+                <select id="bbm-select" required></select>
+                <input type="date" id="bbm-tanggal" required>
+                <input type="text" id="bbm-pom" placeholder="Nama POM Bensin" required>
+                <div class="input-row">
+                    <input type="number" id="bbm-liter" step="0.1" placeholder="Liter" required oninput="calcTotal()">
+                    <input type="number" id="bbm-harga" placeholder="Harga/Liter" required oninput="calcTotal()">
+                </div>
+                <input type="number" id="bbm-total" placeholder="Total Harga" readonly>
+                <button type="submit" class="btn-save">Simpan Data BBM</button>
+            </form>
+        </section>
+
+        <!-- Halaman Service (AI Gemini) -->
+        <section id="service-page" class="page hidden">
+            <div class="header-action">
+                <button onclick="showPage('home-page')" class="btn-back">⬅ Kembali</button>
+                <h2>Rekomendasi Service AI</h2>
+            </div>
+            <div class="ai-form">
+                <select id="service-select"></select>
+                <input type="number" id="service-km" placeholder="Masukkan Kilometer Saat Ini">
+                <button onclick="askGemini()" id="btn-gemini" class="btn-ai">💡 Dapatkan Rekomendasi</button>
+            </div>
+            <div id="ai-response" class="response-box">
+                Hasil analisa AI akan muncul di sini...
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
