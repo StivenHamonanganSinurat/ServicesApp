@@ -118,31 +118,40 @@ async function askGemini() {
     const selectedText = select.options[select.selectedIndex].text;
     resBox.innerHTML = "<i>Sedang menghubungi Google AI...</i>";
 
+    // KITA UBAH URL-NYA DI SINI:
+    // Dari v1beta menjadi v1
+    const URL_API = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(URL_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: `Rekomendasi service ${selectedText} kilometer ${km}` }] }]
+                contents: [{ 
+                    parts: [{ 
+                        text: `Berikan rekomendasi service rutin untuk kendaraan ${selectedText} yang sudah mencapai ${km} kilometer. Berikan poin-poin singkat dan estimasi biaya dalam Rupiah.` 
+                    }] 
+                }]
             })
         });
 
         const result = await response.json();
 
-        // JIKA ERROR (Ini akan memberitahu kita alasan sebenarnya)
         if (result.error) {
             resBox.innerHTML = `
                 <div style="color:red; background:#ffdada; padding:10px; border-radius:5px">
                     <b>Google API Error:</b><br>
                     Kode: ${result.error.code}<br>
-                    Status: ${result.error.status}<br>
                     Pesan: ${result.error.message}
                 </div>`;
             return;
         }
 
-        if (result.candidates) {
+        if (result.candidates && result.candidates[0].content) {
+            // Kita gunakan .innerText agar format bender (seperti bintang-bintang) dari AI tetap terbaca rapi
             resBox.innerText = result.candidates[0].content.parts[0].text;
+        } else {
+            resBox.innerText = "AI tidak memberikan respon. Coba ulangi.";
         }
 
     } catch (err) {
